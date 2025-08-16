@@ -183,6 +183,40 @@ class MaimaiAPI:
         result = await self._requestmai('GET', '/dev/player/records', params=params)
         return UserInfoDev.model_validate(result)
 
+    async def get_user_ap_records(
+        self, 
+        *, 
+        qqid: Optional[int] = None, 
+        username: Optional[str] = None
+    ) -> UserInfoDev:
+        """
+        使用开发者接口获取用户数据，请确保拥有和输入了开发者 `token`
+
+        Params:
+            qqid: 用户QQ
+            username: 查分器用户名
+        Returns:
+            `UserInfoDev` 开发者用户信息
+        """
+        params = {}
+        if qqid:
+            params['qq'] = qqid
+        if username:
+            params['username'] = username
+        
+        result = await self._requestmai('GET', '/dev/player/records', params=params)
+
+        cus_records = [record for record in result['records'] if record['fc'] in ['ap', 'app']]
+
+        sorted_records = sorted(cus_records, key=lambda x: x['ra'], reverse=True)
+        
+        # 截取前50个数据
+        top_50_records = sorted_records[:50]
+
+        result['records'] = top_50_records
+
+        return UserInfoDev.model_validate(result)
+
     async def query_user_post_dev(
         self,
         *,

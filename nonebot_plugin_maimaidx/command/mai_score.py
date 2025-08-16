@@ -9,6 +9,7 @@ from ..libraries.maimaidx_player_score import *
 from ..libraries.maimaidx_update_plate import *
 
 best50  = on_command('b50', aliases={'B50'})
+ap50    = on_command('ap50', aliases={'AP50'})
 minfo   = on_command('minfo', aliases={'minfo', 'Minfo', 'MINFO', 'info', 'Info', 'INFO'})
 ginfo   = on_command('ginfo', aliases={'ginfo', 'Ginfo', 'GINFO'})
 score   = on_command('分数线')
@@ -29,9 +30,17 @@ async def _(
 ):
     qqid = user_id or event.user_id
     username = message.extract_plain_text().strip()
-    await best50.finish(await generate(qqid, username), reply_message=True)
+    await best50.finish(await generateb50(qqid, username), reply_message=True)
 
-
+@ap50.handle()
+async def _(
+    event: MessageEvent, 
+    message: Message = CommandArg(), 
+    user_id: Optional[int] = Depends(get_at_qq)
+):
+    qqid = user_id or event.user_id
+    username = message.extract_plain_text().strip()
+    await best50.finish(await generateap50(qqid, username), reply_message=True)
 @minfo.handle()
 async def _(
     event: MessageEvent, 
