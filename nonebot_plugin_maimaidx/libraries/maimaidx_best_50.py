@@ -454,22 +454,47 @@ async def generateb50(qqid: Optional[int] = None, username: Optional[str] = None
         msg = f'未知错误：{type(e)}\n请联系Bot管理员'
     return msg
 
-async def generateap50(qqid: Optional[int] = None, username: Optional[str] = None) -> Union[MessageSegment, str]:
-    """
-    生成b50
-    
-    Params:
-        `qqid`: QQ号
-        `username`: 用户名
-        `icon`: 头像
-    Returns:
-        `Union[MessageSegment, str]`
-    """
+async def generateap50(tp:str ,qqid: Optional[int] = None, username: Optional[str] = None) -> Union[MessageSegment, str]:
     try:
         if username:
             qqid = None
-        data = await maiApi.get_user_ap_records(qqid=qqid, username=username)
+        data = await maiApi.get_user_ap_records(qqid=qqid, username=username, type=tp)
 
+        draw_best = DrawBest(UserInfoDev = data, qqid = qqid, normal=False)
+        
+        msg = MessageSegment.image(image_to_base64(await draw_best.draw()))
+    except (UserNotFoundError, UserNotExistsError, UserDisabledQueryError) as e:
+        msg = str(e)
+    except Exception as e:
+        log.error(traceback.format_exc())
+        msg = f'未知错误：{type(e)}\n请联系Bot管理员'
+    return msg
+
+async def generatestar50(tp:int ,qqid: Optional[int] = None, username: Optional[str] = None) -> Union[MessageSegment, str]:
+    try:
+        if username:
+            qqid = None
+        data = await maiApi.query_user_get_dev(qqid=qqid, username=username)
+        records = data.records if data.records else []
+        filtered_records = []
+        for record in records:
+            song_id = int(record.song_id)
+            
+            level_index = record.level_index
+            music = mai.total_list.by_id(song_id)
+            if not music:
+                continue
+            chart = music.charts[level_index]
+            if not chart:
+                continue
+            notes = chart.notes
+            dxscore = sum(notes) * 3
+            dxnum = record.dxScore / dxscore * 100
+            if int(dxScore(dxnum)) == int(tp):
+                filtered_records.append(record)
+        filtered_records.sort(key=lambda x: x.ra, reverse=True)
+        top_50_records = filtered_records[:50]
+        data.records = top_50_records
         draw_best = DrawBest(UserInfoDev = data, qqid = qqid, normal=False)
         
         msg = MessageSegment.image(image_to_base64(await draw_best.draw()))

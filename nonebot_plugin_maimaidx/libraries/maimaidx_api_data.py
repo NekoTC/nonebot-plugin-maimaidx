@@ -187,17 +187,9 @@ class MaimaiAPI:
         self, 
         *, 
         qqid: Optional[int] = None, 
-        username: Optional[str] = None
+        username: Optional[str] = None,
+        type: Optional[str]
     ) -> UserInfoDev:
-        """
-        使用开发者接口获取用户数据，请确保拥有和输入了开发者 `token`
-
-        Params:
-            qqid: 用户QQ
-            username: 查分器用户名
-        Returns:
-            `UserInfoDev` 开发者用户信息
-        """
         params = {}
         if qqid:
             params['qq'] = qqid
@@ -205,8 +197,13 @@ class MaimaiAPI:
             params['username'] = username
         
         result = await self._requestmai('GET', '/dev/player/records', params=params)
-
-        cus_records = [record for record in result['records'] if record['fc'] in ['ap', 'app']]
+        if type == 'ap':
+            fc = ['ap', 'app']
+        elif type == 'fc':
+            fc = ['fc', 'fcp']
+        else:
+            fc = ['ap', 'app', 'fc', 'fcp']
+        cus_records = [record for record in result['records'] if record['fc'] in fc]
 
         sorted_records = sorted(cus_records, key=lambda x: x['ra'], reverse=True)
         

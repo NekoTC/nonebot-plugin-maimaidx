@@ -1,18 +1,20 @@
 import re
 
-from nonebot import on_command
+from nonebot import on_command, on_regex
 from nonebot.adapters.onebot.v11 import Message, MessageEvent
-from nonebot.params import CommandArg, Depends
+from nonebot.params import CommandArg, Depends, RegexGroup
 
 from ..libraries.maimaidx_music_info import *
 from ..libraries.maimaidx_player_score import *
 from ..libraries.maimaidx_update_plate import *
 
-best50  = on_command('b50', aliases={'B50'})
-ap50    = on_command('ap50', aliases={'AP50'})
-minfo   = on_command('minfo', aliases={'minfo', 'Minfo', 'MINFO', 'info', 'Info', 'INFO'})
-ginfo   = on_command('ginfo', aliases={'ginfo', 'Ginfo', 'GINFO'})
-score   = on_command('分数线')
+best50     = on_command('b50', aliases={'B50'})
+ap50       = on_command('ap50', aliases={'AP50'})
+fc50       = on_command('fc50', aliases={'FC50'})
+star50     = on_regex(r'^/?([0-5])星50$')
+minfo      = on_command('minfo', aliases={'minfo', 'Minfo', 'MINFO', 'info', 'Info', 'INFO'})
+ginfo      = on_command('ginfo', aliases={'ginfo', 'Ginfo', 'GINFO'})
+score      = on_command('分数线')
 
 
 def get_at_qq(message: MessageEvent) -> Optional[int]:
@@ -36,11 +38,30 @@ async def _(
 async def _(
     event: MessageEvent, 
     message: Message = CommandArg(), 
-    user_id: Optional[int] = Depends(get_at_qq)
+    user_id: Optional[int] = Depends(get_at_qq),
 ):
     qqid = user_id or event.user_id
     username = message.extract_plain_text().strip()
-    await best50.finish(await generateap50(qqid, username), reply_message=True)
+    await ap50.finish(await generateap50('ap', qqid, username), reply_message=True)
+@fc50.handle()
+async def _(
+    event: MessageEvent,
+    message: Message = CommandArg(), 
+    user_id: Optional[int] = Depends(get_at_qq),
+):
+    qqid = user_id or event.user_id
+    username = message.extract_plain_text().strip()
+    await fc50.finish(await generateap50('fc', qqid, username), reply_message=True)
+
+@star50.handle()
+async def _(
+    event: MessageEvent, 
+    match: tuple = RegexGroup()
+):
+    number = match[0]
+    qqid = event.user_id
+    await star50.finish(await generatestar50(number, qqid), reply_message=True)
+
 @minfo.handle()
 async def _(
     event: MessageEvent, 
