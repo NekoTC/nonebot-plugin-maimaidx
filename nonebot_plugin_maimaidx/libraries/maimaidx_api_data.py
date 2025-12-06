@@ -129,8 +129,9 @@ class MaimaiAPI:
         if username:
             json['username'] = username
         json['b50'] = True
-
-        return UserInfo.model_validate(await self._requestmai('POST', '/query/player', json=json))
+        b50 = await self._requestmai('POST', '/query/player', json=json)
+        print(b50)
+        return UserInfo.model_validate(b50)
 
     async def query_user_plate(
         self,
